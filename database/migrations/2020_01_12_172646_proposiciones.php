@@ -15,14 +15,14 @@ class Proposiciones extends Migration
     {
         Schema::create('proposiciones', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('identificacion');
-            $table->string('nombre');
-            $table->string('email');
-            $table->string('telefono');
-            $table->string('ejes');
-            $table->string('problema');
-            $table->string('solucion');
-            $table->string('video');
+            $table->string('identificacion', 20)->nullable();
+            $table->string('nombre', 100)->nullable();
+            $table->string('email', 50)->nullable();
+            $table->string('telefono', 15)->nullable();
+            $table->string('ejes', 100)->nullable();
+            $table->string('problema', 1000)->nullable();
+            $table->string('solucion', 1000)->nullable();
+            $table->string('video', 100)->nullable();
             $table->timestamps();
         });
     }
