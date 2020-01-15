@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Proposiciones;
 use App\Http\Resources\Proposiciones as ProposicionesResource;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProposicionesController extends Controller
 {
@@ -46,17 +47,20 @@ class ProposicionesController extends Controller
      */
     public function store(Request $request)
     {
-        $proposicion = Proposiciones::create([
-            'identificacion' => $request->input('identificacion'),
-            'nombre' => $request->input('nombre'),
-            'email' => $request->input('email'),
-            'telefono' => $request->input('telefono'),
-            'ejes' => $request->input('ejes'),
-            'problema' => $request->input('problema'),
-            'solucion' => $request->input('solucion'),
-            'video' => $request->input('video'),
-        ]);
-
+        $path = null;
+        if($request->hasFile("attach")){
+            $file = $request->attach;
+            $path = $file->getClientOriginalName();
+            $path=Storage::disk('s3')->putFile($path, $request->attach);
+            $path=Storage::disk('s3')->url($path);
+        }
+        $proposicion = new Proposiciones();
+        $proposicion->ejes = $request->get('ejes');
+        $proposicion->problema = $request->get('problema');
+        $proposicion->solucion = $request->get('solucion');
+        $proposicion->video = $path;
+        $proposicion->save();
+        
         ProposicionesResource::withoutWrapping();
         return new ProposicionesResource($proposicion);
     }
@@ -92,19 +96,14 @@ class ProposicionesController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $ruta = Proposiciones::whereId($id)->update([
-            'identificacion' => $request->input('identificacion'),
-            'nombre' => $request->input('nombre'),
-            'email' => $request->input('email'),
-            'telefono' => $request->input('telefono'),
-            'ejes' => $request->input('ejes'),
-            'problema' => $request->input('problema'),
-            'solucion' => $request->input('solucion'),
-            'video' => $request->input('video'),
-            ]);
-
-            ProposicionesResource::withoutWrapping();
-            return (new ProposicionesResource($request))->response()->setStatusCode(201);
+        $ruta = Proposiciones::findOrFail($id);
+        $ruta->identificacion = $request->get("identificacion");
+        $ruta->nombre = $request->get("nombre");
+        $ruta->email = $request->get("email");
+        $ruta->telefono = $request->get("telefono");
+        $ruta->save();
+        ProposicionesResource::withoutWrapping();
+        return (new ProposicionesResource($request))->response()->setStatusCode(201);
 
     }
 
